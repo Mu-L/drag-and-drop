@@ -27,5 +27,6 @@ dist-ssr
 /test-results/
 /playwright-report/
 /playwright/.cache/
+.pnpm-store/
 .node_modules_tmp
 tests/.nuxt/

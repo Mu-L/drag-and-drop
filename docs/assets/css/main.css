@@ -264,7 +264,8 @@ html.dark body::after {
 .twoslash-popup-container {
   flex-basis: 500px;
   overflow: auto;
-  max-width: 500px;
+  max-width: min(500px, 90vw);
+  max-height: 300px;
 }
 .dark .twoslash-popup-container {
   background-color: #222427 !important;

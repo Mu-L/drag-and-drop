@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Component } from "vue";
-import { ref, watch, onMounted, nextTick } from "vue";
+import { shallowRef, ref, reactive, watch, onMounted, nextTick } from "vue";
 
 const props = defineProps<{
   example: string;
@@ -9,60 +9,57 @@ const expanded = ref(true);
 const exampleLang = ref("react");
 const rawCode = ref("");
 const copyStatus = ref("Copy");
-const codeCache = ref<Record<string, string>>({}); // Cache for raw code snippets
-const availableLangs = ["react", "vue", "solid", "native"]; // Define available languages
-const copyButtonRef = ref<HTMLButtonElement | null>(null); // Template ref for the button
+const codeCache = ref<Record<string, string>>({});
+const availableLangs = ["react", "vue", "solid", "native"];
+const copyButtonRef = ref<HTMLButtonElement | null>(null);
 
-let cmp: Component | false = false;
-
-try {
-  const res = await import(`../examples/${props.example}/demo.vue`);
-  cmp = res.default;
-} catch (err) {
-  console.error("Failed to load demo: ", err);
-}
+const cmp = shallowRef<Component | false>(false);
+const loadedLangs = reactive(new Set(["react"]));
 
 watch(
   exampleLang,
   (newLang) => {
+    loadedLangs.add(newLang);
     rawCode.value = codeCache.value[newLang] || "";
-
     copyStatus.value = rawCode.value ? "Copy" : "Error";
   },
   { immediate: false }
 );
 
-onMounted(async () => {
-  await nextTick(); // Ensure DOM is ready
-
+function collectRawCode() {
+  let found = 0;
   for (const lang of availableLangs) {
-    try {
-      const hiddenCodeElement = document.getElementById(
-        `raw-code-container-${props.example}-${lang}`
-      );
-
-      if (hiddenCodeElement && hiddenCodeElement.textContent) {
-        codeCache.value[lang] = hiddenCodeElement.textContent;
-      } else {
-        console.warn(
-          `Hidden code element not found or empty for lang: ${lang} on mount.`
-        );
-
-        codeCache.value[lang] = ""; // Store empty string if not found
-      }
-    } catch (error) {
-      console.error(
-        `Failed to extract raw code for lang ${lang} on mount:`,
-        error
-      );
-
-      codeCache.value[lang] = ""; // Store empty string on error
+    if (codeCache.value[lang]) {
+      found++;
+      continue;
+    }
+    const el = document.getElementById(
+      `raw-code-container-${props.example}-${lang}`
+    );
+    if (el && el.textContent) {
+      codeCache.value[lang] = el.textContent;
+      found++;
     }
   }
-
-  // Set initial rawCode based on the starting language
   rawCode.value = codeCache.value[exampleLang.value] || "";
   copyStatus.value = rawCode.value ? "Copy" : "Error";
+  return found === availableLangs.length;
+}
+
+onMounted(async () => {
+  try {
+    const res = await import(`../examples/${props.example}/demo.vue`);
+    cmp.value = res.default;
+  } catch (err) {
+    console.error("Failed to load demo: ", err);
+  }
+
+  if (!collectRawCode()) {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      if (collectRawCode() || ++attempts > 20) clearInterval(interval);
+    }, 500);
+  }
 });
 
 async function copyCode() {
@@ -71,7 +68,6 @@ async function copyCode() {
     return;
   }
 
-  // Reset any lingering feedback class
   copyButtonRef.value.classList.remove("copy-success", "copy-failed");
 
   try {
@@ -141,7 +137,6 @@ async function copyCode() {
       </li>
 
       <li class="ml-auto flex items-center pr-1">
-        <!-- Wrapper for positioning context -->
         <div class="relative mr-1">
           <button
             ref="copyButtonRef"
@@ -150,9 +145,7 @@ async function copyCode() {
             :disabled="copyStatus === 'Error'"
             aria-label="Copy"
           >
-            <!-- Icon span -->
             <span>
-              <!-- SVG -->
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
@@ -172,7 +165,6 @@ async function copyCode() {
               </svg>
             </span>
           </button>
-          <!-- Status text positioned relative to the wrapper -->
         </div>
 
         <div class="faux-controls hidden md:flex items-center">
@@ -192,16 +184,16 @@ async function copyCode() {
       v-show="expanded"
       class="editor border-l-4 border-r-4 border-slate-400 dark:border-slate-500"
     >
-      <div v-show="exampleLang === 'react'">
+      <div v-if="loadedLangs.has('react')" v-show="exampleLang === 'react'">
         <CodeExampleReact :example="example" />
       </div>
-      <div v-show="exampleLang === 'vue'">
+      <div v-if="loadedLangs.has('vue')" v-show="exampleLang === 'vue'">
         <CodeExampleVue :example="example" />
       </div>
-      <div v-show="exampleLang === 'solid'">
+      <div v-if="loadedLangs.has('solid')" v-show="exampleLang === 'solid'">
         <CodeExampleSolid :example="example" />
       </div>
-      <div v-show="exampleLang === 'native'">
+      <div v-if="loadedLangs.has('native')" v-show="exampleLang === 'native'">
         <CodeExampleNative :example="example" />
       </div>
     </div>
@@ -262,26 +254,21 @@ async function copyCode() {
   background: black;
 }
 
-/* Add active state for faux buttons */
 .faux-button:active {
   border-top: 1px solid #000000;
   border-left: 1px solid #000000;
   border-bottom: 1px solid #ffffff;
   border-right: 1px solid #ffffff;
-  box-shadow: inset 1px 1px 0px #808080; /* Inner dark bevel */
-  padding-top: 1px; /* Simulate content push */
+  box-shadow: inset 1px 1px 0px #808080;
+  padding-top: 1px;
   padding-left: 1px;
 }
 
-/* New style for success feedback */
 .copy-button.copy-success {
   border-top: 1px solid #000000;
   border-left: 1px solid #000000;
   border-bottom: 1px solid #ffffff;
   border-right: 1px solid #ffffff;
-  box-shadow: inset 1px 1px 0px #808080; /* Inner dark bevel */
-  /* No padding change needed like :active */
+  box-shadow: inset 1px 1px 0px #808080;
 }
-
-/* Optional: Add styles for .copy-button.copy-failed if desired */
 </style>

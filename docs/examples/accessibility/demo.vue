@@ -415,11 +415,19 @@ async function handleListKeydown(event: KeyboardEvent, listIndex: 0 | 1) {
   min-height: 150px;
   background-color: #f9f9f9;
 }
+html.dark .list {
+  border-color: #334155;
+  background-color: #1e293b;
+}
 
 .list:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+html.dark .list:focus {
+  border-color: #d13ac2;
+  box-shadow: 0 0 0 2px rgba(209, 58, 194, 0.25);
 }
 
 .item {
@@ -428,8 +436,13 @@ async function handleListKeydown(event: KeyboardEvent, listIndex: 0 | 1) {
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 3px;
-  cursor: default; /* Indicate keyboard interaction */
-  user-select: none; /* Prevent text selection interfering */
+  cursor: default;
+  user-select: none;
+}
+html.dark .item {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
 }
 
 .item:last-child {
@@ -442,6 +455,10 @@ async function handleListKeydown(event: KeyboardEvent, listIndex: 0 | 1) {
   outline-offset: 2px;
   background-color: #e7f3ff;
 }
+html.dark .item-focused {
+  outline-color: #d13ac2;
+  background-color: #1a1033;
+}
 
 /* Style for the selected item */
 .item-selected {
@@ -449,12 +466,19 @@ async function handleListKeydown(event: KeyboardEvent, listIndex: 0 | 1) {
   border-color: #b8daff;
   font-weight: bold;
 }
+html.dark .item-selected {
+  background-color: #2d1a3e;
+  border-color: #d13ac2;
+}
 
 .empty-list-message {
   text-align: center;
   color: #666;
   padding: 1rem;
   font-style: italic;
+}
+html.dark .empty-list-message {
+  color: #94a3b8;
 }
 
 .sr-only {
@@ -476,6 +500,11 @@ async function handleListKeydown(event: KeyboardEvent, listIndex: 0 | 1) {
   border: 1px solid #e0e0e0;
   border-radius: 4px;
 }
+html.dark .instructions {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
 
 .instructions h3 {
   margin-top: 0;
@@ -492,6 +521,12 @@ async function handleListKeydown(event: KeyboardEvent, listIndex: 0 | 1) {
   border: solid 1px #d1d5da;
   border-radius: 3px;
   box-shadow: inset 0 -1px 0 #d1d5da;
+}
+html.dark .instructions kbd {
+  color: #e2e8f0;
+  background-color: #0f172a;
+  border-color: #475569;
+  box-shadow: inset 0 -1px 0 #475569;
 }
 
 h2 {

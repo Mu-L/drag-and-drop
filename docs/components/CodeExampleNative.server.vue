@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { codeToHtml } from "shiki";
-import { transformerTwoslash } from "@shikijs/twoslash";
+import { highlightCode } from "~/utils/shiki";
 
 const props = defineProps({
   example: String,
@@ -14,27 +13,13 @@ const res = await import(
   `../examples/${props.example}/${props.example}.ts?raw`
 );
 const code = res.default;
-const twoslash = transformerTwoslash();
-
-const [html, darkHtml] = await Promise.all([
-  codeToHtml(code, {
-    theme: "github-light",
-    lang: "ts",
-    transformers: [twoslash],
-  }),
-  codeToHtml(code, {
-    theme: "github-dark",
-    lang: "ts",
-    transformers: [twoslash],
-  }),
-]);
+const { html, darkHtml } = await highlightCode(code, "ts");
 </script>
 
 <template>
   <div :data-full-height="fullHeight">
     <div v-html="html" class="dark:hidden"></div>
     <div v-html="darkHtml" class="hidden dark:block"></div>
-    <!-- Hidden container for raw code -->
     <div
       :id="`raw-code-container-${props.example}-native`"
       style="display: none"

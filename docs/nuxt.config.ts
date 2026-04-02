@@ -113,7 +113,9 @@ export default defineNuxtConfig({
 
   colorMode: {
     classSuffix: "",
-    storageKey: "dnd-color-mode",
+    preference: "dark",
+    fallback: "dark",
+    storageKey: false,
   },
 
   routeRules: {

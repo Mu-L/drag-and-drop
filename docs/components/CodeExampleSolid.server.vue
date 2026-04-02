@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { codeToHtml } from "shiki";
-import { createTwoslasher } from "twoslash-vue";
-import { createTransformerFactory, rendererRich } from "@shikijs/twoslash";
+import { highlightCode } from "~/utils/shiki";
 
 const props = defineProps<{
   example: string;
@@ -11,34 +9,13 @@ const res = await import(
   `../examples/${props.example}/${props.example}-solid.tsx?raw`
 );
 const code = res.default;
-
-const html = await codeToHtml(code, {
-  theme: "github-light",
-  lang: "tsx",
-  transformers: [
-    createTransformerFactory(createTwoslasher())({
-      langs: ["ts", "tsx", "js"],
-      renderer: rendererRich(),
-    }),
-  ],
-});
-const darkHtml = await codeToHtml(code, {
-  theme: "github-dark",
-  lang: "tsx",
-  transformers: [
-    createTransformerFactory(createTwoslasher())({
-      langs: ["ts", "tsx", "js"],
-      renderer: rendererRich(),
-    }),
-  ],
-});
+const { html, darkHtml } = await highlightCode(code, "tsx");
 </script>
 
 <template>
   <div>
     <div v-html="html" class="dark:hidden"></div>
     <div v-html="darkHtml" class="hidden dark:block"></div>
-    <!-- Hidden container for raw code -->
     <div
       :id="`raw-code-container-${props.example}-solid`"
       style="display: none"
